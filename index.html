@@ -1,214 +1,226 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Google Sheets Database Demo</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 850px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #f4f7fb;
-      color: #1f2937;
-    }
-
-    .card {
-      background: white;
-      padding: 24px;
-      border-radius: 14px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 16px #0000000d;
-    }
-
-    input, button {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    input {
-      border: 1px solid #d1d5db;
-    }
-
-    button {
-      border: 0;
-      background: #1769aa;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0d4f85;
-    }
-
-    #status {
-      margin-top: 12px;
-      white-space: pre-wrap;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-    }
-
-    th {
-      background: #eaf2f8;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ระบบจัดเก็บรายรับ-รายจ่าย</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:#172b4d;background:#f3f7fc}
+*{box-sizing:border-box}body{margin:0}.top{background:#17365d;color:#fff;padding:22px clamp(16px,4vw,42px);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+h1{font-size:clamp(21px,3vw,30px);margin:0 0 5px}.sub{font-size:13px;color:#d9e6f5}.wrap{max-width:1400px;margin:auto;padding:22px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card,.panel{background:#fff;border:1px solid #dbe6f3;border-radius:13px;box-shadow:0 4px 16px #18365b0a}
+.card{padding:18px}.card small{color:#64748b}.amount{font-size:clamp(20px,2vw,28px);font-weight:750;margin-top:8px}.green{color:#159455}.red{color:#e33d46}.blue{color:#1769d2}.purple{color:#7353c6}
+.panel{padding:20px;margin-bottom:18px}.panel h2{font-size:19px;margin:0 0 16px}.formgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.field label{display:block;font-size:13px;font-weight:650;margin-bottom:7px}.field input,.field select,.toolbar input,.toolbar select{width:100%;padding:11px;border:1px solid #cbd7e6;border-radius:8px;background:#fff;color:#172b4d;font:inherit;min-width:0}
+.actions{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}.btn{border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:650;cursor:pointer}.primary{background:#1769d2;color:#fff}.secondary{background:#e8eef6;color:#334e70}.danger{background:#e83e49;color:#fff}.edit{background:#1672e8;color:white}.btn:disabled{opacity:.55;cursor:wait}
+.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px}.filters{display:flex;gap:9px;flex-wrap:wrap}.filters input{min-width:240px}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:850px;font-size:14px}th,td{padding:11px 12px;text-align:left;border-bottom:1px solid #e7edf5}th{background:#f0f5fb;color:#314d70;white-space:nowrap}tbody tr:hover{background:#f8fbff}.pill{display:inline-block;padding:4px 9px;border-radius:99px;font-size:12px;font-weight:700}.income{color:#12824b;background:#ddf7e8}.expense{color:#c52e39;background:#ffe5e7}.money{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.rowactions{display:flex;gap:6px}.rowactions .btn{padding:7px 10px;font-size:12px}.status{min-height:24px;margin-top:10px;font-size:14px;white-space:pre-wrap}.muted{color:#64748b}.empty{text-align:center;padding:28px;color:#64748b}.footer{text-align:center;color:#7b8da5;font-size:12px;padding:8px 0 22px}
+@media(max-width:950px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.wrap{padding:12px}.cards{grid-template-columns:1fr 1fr;gap:8px}.card{padding:13px}.panel{padding:14px}.formgrid{grid-template-columns:1fr}.filters,.filters input{width:100%}.filters input{min-width:0}}
+</style>
 </head>
-
 <body>
-  <h1>Google Sheets Database</h1>
-  <p>Frontend: GitHub Pages | Backend: Apps Script</p>
-
-  <section class="card">
-    <h2>เพิ่มข้อมูล</h2>
-
-    <form id="dataForm">
-      <input
-        id="name"
-        type="text"
-        placeholder="ชื่อ"
-        maxlength="100"
-        required
-      >
-
-      <input
-        id="email"
-        type="email"
-        placeholder="อีเมล"
-        maxlength="254"
-        required
-      >
-
-      <button type="submit">บันทึกข้อมูล</button>
-    </form>
-
-    <div id="status" role="status"></div>
+<header class="top">
+  <div><h1>ระบบจัดเก็บข้อมูลรายรับ-รายจ่าย</h1><div class="sub">Frontend: GitHub Pages &nbsp;|&nbsp; Backend: Google Apps Script &nbsp;|&nbsp; Database: Google Sheets</div></div>
+  <button class="btn secondary" id="reloadBtn">↻ โหลดข้อมูล</button>
+</header>
+<main class="wrap">
+  <section class="cards">
+    <div class="card"><small>รายรับทั้งหมด</small><div class="amount green" id="totalIncome">฿0.00</div><small id="incomeCount">0 รายการ</small></div>
+    <div class="card"><small>รายจ่ายทั้งหมด</small><div class="amount red" id="totalExpense">฿0.00</div><small id="expenseCount">0 รายการ</small></div>
+    <div class="card"><small>ยอดคงเหลือ</small><div class="amount blue" id="balance">฿0.00</div><small>รายรับ − รายจ่าย</small></div>
+    <div class="card"><small>จำนวนรายการ</small><div class="amount purple" id="totalCount">0</div><small>รายการทั้งหมด</small></div>
   </section>
 
-  <section class="card">
-    <h2>ข้อมูลจาก Google Sheets</h2>
-    <button id="refreshBtn" type="button">โหลดข้อมูลใหม่</button>
+  <section class="panel">
+    <h2 id="formTitle">＋ เพิ่มข้อมูลรายรับ-รายจ่าย</h2>
+    <form id="entryForm">
+      <input type="hidden" id="recordId">
+      <div class="formgrid">
+        <div class="field"><label for="date">วันที่</label><input id="date" type="date" required></div>
+        <div class="field"><label for="type">ประเภทรายการ</label><select id="type" required><option value="รายรับ">รายรับ</option><option value="รายจ่าย">รายจ่าย</option></select></div>
+        <div class="field"><label for="category">หมวดหมู่</label><select id="category" required><option>เงินเดือน</option><option>อาหาร</option><option>เดินทาง</option><option>บ้าน</option><option>สุขภาพ</option><option>การศึกษา</option><option>ช้อปปิ้ง</option><option>ขายของ</option><option>งานพิเศษ</option><option>บิล/ค่าสาธารณูปโภค</option><option>อื่นๆ</option></select></div>
+        <div class="field"><label for="amount">จำนวนเงิน (บาท)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="เช่น 1500" required></div>
+        <div class="field"><label for="detail">รายละเอียด</label><input id="detail" type="text" maxlength="250" placeholder="รายละเอียดรายการ" required></div>
+      </div>
+      <div class="actions"><button class="btn primary" id="saveBtn" type="submit">บันทึกข้อมูล</button><button class="btn secondary" type="button" id="cancelBtn">ล้างฟอร์ม</button></div>
+      <div class="status" id="formStatus" role="status"></div>
+    </form>
+  </section>
 
-    <p id="loading"></p>
-
-    <div class="table-wrap">
+  <section class="panel">
+    <h2>▤ รายการข้อมูล</h2>
+    <div class="toolbar">
+      <div class="filters">
+        <input id="search" type="search" placeholder="ค้นหาหมวดหมู่หรือรายละเอียด...">
+        <select id="typeFilter"><option value="">ทุกประเภท</option><option value="รายรับ">รายรับ</option><option value="รายจ่าย">รายจ่าย</option></select>
+        <input id="monthFilter" type="month" aria-label="กรองตามเดือน">
+      </div>
+      <div class="muted" id="tableCount">0 รายการ</div>
+    </div>
+    <div class="tablewrap">
       <table>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Name</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-        <tbody id="dataBody"></tbody>
+        <thead><tr><th>ลำดับ</th><th>วันที่</th><th>ประเภท</th><th>หมวดหมู่</th><th>รายละเอียด</th><th class="money">จำนวนเงิน (บาท)</th><th>จัดการ</th></tr></thead>
+        <tbody id="recordsBody"><tr><td colspan="7" class="empty">กำลังโหลดข้อมูล...</td></tr></tbody>
       </table>
     </div>
+    <div class="status" id="listStatus" role="status"></div>
   </section>
+  <div class="footer">ข้อมูลถูกจัดเก็บใน Google Sheets ของคุณ · ตัวอย่างเริ่มต้นสำหรับใช้งานส่วนตัว</div>
+</main>
 
-  <script>
- 
-    const API_URL =
-      "https://script.google.com/macros/s/AKfycbyMuyFdOTDqiyiYLA-eotmUKws0xkbMJt-KHFxzuTQQliS-C7BuMMgoVQdV3TmqyUkAeQ/exec";
+<script>
+/*
+  1) Deploy Code.gs as a Web App.
+  2) Paste its /exec URL below.
+  3) This demo uses JSONP GET requests to avoid browser CORS issues with Apps Script.
+     Do not expose this endpoint publicly for private financial data without authentication.
+*/
+const API_URL = "https://script.google.com/macros/s/AKfycbyMuyFdOTDqiyiYLA-eotmUKws0xkbMJt-KHFxzuTQQliS-C7BuMMgoVQdV3TmqyUkAeQ/exec";
+let records = [];
+let busy = false;
 
-    const statusEl = document.getElementById("status");
-    const loadingEl = document.getElementById("loading");
-    const dataBody = document.getElementById("dataBody");
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat("th-TH",{style:"currency",currency:"THB"}).format(Number(n)||0);
+const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
 
-    // เรียก Backend เพื่ออ่านข้อมูล
-    async function loadData() {
-      loadingEl.textContent = "กำลังโหลดข้อมูล...";
-      dataBody.replaceChildren();
-
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error("HTTP " + response.status);
-
-        const result = await response.json();
-        if (!result.success) throw new Error(result.message);
-
-        result.data.forEach(item => {
-          const tr = document.createElement("tr");
-
-          // ใช้ textContent ป้องกันการแทรก HTML จากข้อมูล
-          ["Timestamp", "Name", "Email"].forEach(key => {
-            const td = document.createElement("td");
-            td.textContent = item[key] ?? "";
-            tr.appendChild(td);
-          });
-
-          dataBody.appendChild(tr);
-        });
-
-        loadingEl.textContent =
-          `พบข้อมูล ${result.data.length} รายการ`;
-
-      } catch (error) {
-        loadingEl.textContent =
-          "อ่านข้อมูลไม่สำเร็จ: " + error.message;
-      }
+function api(action, params={}) {
+  return new Promise((resolve,reject) => {
+    if (!API_URL || API_URL.includes("PASTE_YOUR")) {
+      reject(new Error("กรุณาตั้งค่า API_URL ในไฟล์ index.html ก่อน"));
+      return;
     }
+    const callback = "gsCallback_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+    const script = document.createElement("script");
+    const query = new URLSearchParams({action, callback, ...params});
+    const timer = setTimeout(() => { cleanup(); reject(new Error("หมดเวลารอ API")); }, 20000);
+    function cleanup(){ clearTimeout(timer); delete window[callback]; script.remove(); }
+    window[callback] = data => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error("เรียก API ไม่สำเร็จ กรุณาตรวจสอบ URL และสิทธิ์ Deploy")); };
+    script.src = API_URL + (API_URL.includes("?") ? "&" : "?") + query.toString();
+    document.body.appendChild(script);
+  });
+}
 
-    // ส่งข้อมูลจาก Frontend ไป Backend
-    document.getElementById("dataForm")
-      .addEventListener("submit", async event => {
-        event.preventDefault();
+function setBusy(value) {
+  busy = value;
+  $("saveBtn").disabled = value;
+  $("reloadBtn").disabled = value;
+}
 
-        const payload = {
-          name: document.getElementById("name").value.trim(),
-          email: document.getElementById("email").value.trim()
-        };
+function safeText(value) {
+  return String(value ?? "");
+}
 
-        statusEl.textContent = "กำลังบันทึก...";
+function render() {
+  const income = records.filter(r=>r.type==="รายรับ");
+  const expense = records.filter(r=>r.type==="รายจ่าย");
+  const sum = list => list.reduce((s,r)=>s+Number(r.amount||0),0);
+  $("totalIncome").textContent = money(sum(income));
+  $("totalExpense").textContent = money(sum(expense));
+  $("balance").textContent = money(sum(income)-sum(expense));
+  $("incomeCount").textContent = `${income.length} รายการ`;
+  $("expenseCount").textContent = `${expense.length} รายการ`;
+  $("totalCount").textContent = records.length;
 
-        try {
-          const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: JSON.stringify(payload)
-          });
+  const search = $("search").value.trim().toLocaleLowerCase("th");
+  const type = $("typeFilter").value;
+  const month = $("monthFilter").value;
+  const filtered = records.filter(r => {
+    const matchesSearch = !search || [r.category,r.detail,r.date,r.type].some(v=>safeText(v).toLocaleLowerCase("th").includes(search));
+    const matchesType = !type || r.type===type;
+    const matchesMonth = !month || safeText(r.date).startsWith(month);
+    return matchesSearch && matchesType && matchesMonth;
+  }).sort((a,b)=>safeText(b.date).localeCompare(safeText(a.date)));
 
-          const result = await response.json();
-
-          if (!result.success) {
-            throw new Error(result.message);
-          }
-
-          statusEl.textContent = result.message;
-          event.target.reset();
-          await loadData();
-
-        } catch (error) {
-          statusEl.textContent =
-            "บันทึกไม่สำเร็จ: " + error.message;
-        }
-      });
-
-    document.getElementById("refreshBtn")
-      .addEventListener("click", loadData);
-
-    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
-    loadData();
-  </script>
+  $("tableCount").textContent = `${filtered.length} รายการ`;
+  const body = $("recordsBody");
+  body.replaceChildren();
+  if (!filtered.length) {
+    const tr=document.createElement("tr"),td=document.createElement("td");
+    td.colSpan=7;td.className="empty";td.textContent="ไม่พบข้อมูล";tr.appendChild(td);body.appendChild(tr);return;
+  }
+  filtered.forEach((r,i)=>{
+    const tr=document.createElement("tr");
+    const values=[i+1,formatDate(r.date),r.type,r.category,r.detail];
+    values.forEach((value,index)=>{
+      const td=document.createElement("td");
+      td.textContent=safeText(value);
+      if(index===2){const span=document.createElement("span");span.className="pill "+(r.type==="รายรับ"?"income":"expense");span.textContent=r.type;td.replaceChildren(span);}
+      tr.appendChild(td);
+    });
+    const amount=document.createElement("td");amount.className="money";amount.textContent=money(r.amount);tr.appendChild(amount);
+    const actions=document.createElement("td"),group=document.createElement("div");group.className="rowactions";
+    const edit=document.createElement("button");edit.className="btn edit";edit.textContent="✎ แก้ไข";edit.onclick=()=>startEdit(r.id);
+    const del=document.createElement("button");del.className="btn danger";del.textContent="ลบ";del.onclick=()=>deleteRecord(r.id);
+    group.append(edit,del);actions.appendChild(group);tr.appendChild(actions);body.appendChild(tr);
+  });
+}
+function formatDate(s) {
+  const m=safeText(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : safeText(s);
+}
+async function loadRecords() {
+  $("listStatus").textContent="กำลังโหลดข้อมูล...";
+  try {
+    const result=await api("list");
+    if(!result.success) throw new Error(result.message||"โหลดข้อมูลไม่สำเร็จ");
+    records=Array.isArray(result.data)?result.data:[];
+    render();$("listStatus").textContent="";
+  } catch(e) {$("listStatus").textContent=e.message;}
+}
+function clearForm() {
+  $("entryForm").reset();$("recordId").value="";$("date").value=todayISO();
+  $("formTitle").textContent="＋ เพิ่มข้อมูลรายรับ-รายจ่าย";
+  $("saveBtn").textContent="บันทึกข้อมูล";$("formStatus").textContent="";
+}
+function startEdit(id) {
+  const r=records.find(x=>String(x.id)===String(id));if(!r)return;
+  $("recordId").value=r.id;$("date").value=r.date;$("type").value=r.type;
+  $("category").value=r.category;
+  if(!$("category").value){const o=document.createElement("option");o.value=r.category;o.textContent=r.category;$("category").appendChild(o);$("category").value=r.category;}
+  $("amount").value=r.amount;$("detail").value=r.detail;
+  $("formTitle").textContent="✎ แก้ไขข้อมูลรายรับ-รายจ่าย";
+  $("saveBtn").textContent="บันทึกการแก้ไข";$("formStatus").textContent="กำลังแก้ไขรายการที่เลือก";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+async function deleteRecord(id) {
+  const r=records.find(x=>String(x.id)===String(id));if(!r)return;
+  if(!confirm(`ยืนยันลบรายการ "${r.detail}" จำนวน ${money(r.amount)} หรือไม่?`))return;
+  try {
+    setBusy(true);
+    const result=await api("delete",{id:String(id)});
+    if(!result.success)throw new Error(result.message||"ลบข้อมูลไม่สำเร็จ");
+    await loadRecords();
+  } catch(e){$("listStatus").textContent=e.message;}
+  finally{setBusy(false);}
+}
+$("entryForm").addEventListener("submit",async e=>{
+  e.preventDefault();if(busy)return;
+  const id=$("recordId").value;
+  const params={
+    id, date:$("date").value, type:$("type").value,
+    category:$("category").value, amount:$("amount").value,
+    detail:$("detail").value.trim()
+  };
+  if(!params.date||!params.category||!params.detail||!(Number(params.amount)>0)){
+    $("formStatus").textContent="กรุณากรอกข้อมูลให้ครบและจำนวนเงินต้องมากกว่า 0";return;
+  }
+  try{
+    setBusy(true);$("formStatus").textContent="กำลังบันทึก...";
+    const result=await api(id?"update":"create",params);
+    if(!result.success)throw new Error(result.message||"บันทึกข้อมูลไม่สำเร็จ");
+    clearForm();$("formStatus").textContent=result.message||"บันทึกข้อมูลสำเร็จ";
+    await loadRecords();
+  }catch(err){$("formStatus").textContent=err.message;}
+  finally{setBusy(false);}
+});
+$("cancelBtn").addEventListener("click",clearForm);
+$("reloadBtn").addEventListener("click",loadRecords);
+["search","typeFilter","monthFilter"].forEach(id=>$(id).addEventListener("input",render));
+$("date").value=todayISO();
+loadRecords();
+</script>
 </body>
 </html>
