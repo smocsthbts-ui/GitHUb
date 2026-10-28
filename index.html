@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Google Sheets Database Demo</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px #0000000d;
+    }
+
+    input, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    input {
+      border: 1px solid #d1d5db;
+    }
+
+    button {
+      border: 0;
+      background: #1769aa;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0d4f85;
+    }
+
+    #status {
+      margin-top: 12px;
+      white-space: pre-wrap;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    th {
+      background: #eaf2f8;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Google Sheets Database</h1>
+  <p>Frontend: GitHub Pages | Backend: Apps Script</p>
+
+  <section class="card">
+    <h2>เพิ่มข้อมูล</h2>
+
+    <form id="dataForm">
+      <input
+        id="name"
+        type="text"
+        placeholder="ชื่อ"
+        maxlength="100"
+        required
+      >
+
+      <input
+        id="email"
+        type="email"
+        placeholder="อีเมล"
+        maxlength="254"
+        required
+      >
+
+      <button type="submit">บันทึกข้อมูล</button>
+    </form>
+
+    <div id="status" role="status"></div>
+  </section>
+
+  <section class="card">
+    <h2>ข้อมูลจาก Google Sheets</h2>
+    <button id="refreshBtn" type="button">โหลดข้อมูลใหม่</button>
+
+    <p id="loading"></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody id="dataBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+ 
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbyMuyFdOTDqiyiYLA-eotmUKws0xkbMJt-KHFxzuTQQliS-C7BuMMgoVQdV3TmqyUkAeQ/exec";
+
+    const statusEl = document.getElementById("status");
+    const loadingEl = document.getElementById("loading");
+    const dataBody = document.getElementById("dataBody");
+
+    // เรียก Backend เพื่ออ่านข้อมูล
+    async function loadData() {
+      loadingEl.textContent = "กำลังโหลดข้อมูล...";
+      dataBody.replaceChildren();
+
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message);
+
+        result.data.forEach(item => {
+          const tr = document.createElement("tr");
+
+          // ใช้ textContent ป้องกันการแทรก HTML จากข้อมูล
+          ["Timestamp", "Name", "Email"].forEach(key => {
+            const td = document.createElement("td");
+            td.textContent = item[key] ?? "";
+            tr.appendChild(td);
+          });
+
+          dataBody.appendChild(tr);
+        });
+
+        loadingEl.textContent =
+          `พบข้อมูล ${result.data.length} รายการ`;
+
+      } catch (error) {
+        loadingEl.textContent =
+          "อ่านข้อมูลไม่สำเร็จ: " + error.message;
+      }
+    }
+
+    // ส่งข้อมูลจาก Frontend ไป Backend
+    document.getElementById("dataForm")
+      .addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const payload = {
+          name: document.getElementById("name").value.trim(),
+          email: document.getElementById("email").value.trim()
+        };
+
+        statusEl.textContent = "กำลังบันทึก...";
+
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+
+          if (!result.success) {
+            throw new Error(result.message);
+          }
+
+          statusEl.textContent = result.message;
+          event.target.reset();
+          await loadData();
+
+        } catch (error) {
+          statusEl.textContent =
+            "บันทึกไม่สำเร็จ: " + error.message;
+        }
+      });
+
+    document.getElementById("refreshBtn")
+      .addEventListener("click", loadData);
+
+    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
+    loadData();
+  </script>
+</body>
+</html>
