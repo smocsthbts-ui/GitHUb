@@ -4,68 +4,301 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ระบบจัดเก็บรายรับ-รายจ่าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:#172b4d;background:#f3f7fc}
-*{box-sizing:border-box}body{margin:0}.top{background:#17365d;color:#fff;padding:22px clamp(16px,4vw,42px);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-h1{font-size:clamp(21px,3vw,30px);margin:0 0 5px}.sub{font-size:13px;color:#d9e6f5}.wrap{max-width:1400px;margin:auto;padding:22px}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card,.panel{background:#fff;border:1px solid #dbe6f3;border-radius:13px;box-shadow:0 4px 16px #18365b0a}
-.card{padding:18px}.card small{color:#64748b}.amount{font-size:clamp(20px,2vw,28px);font-weight:750;margin-top:8px}.green{color:#159455}.red{color:#e33d46}.blue{color:#1769d2}.purple{color:#7353c6}
-.panel{padding:20px;margin-bottom:18px}.panel h2{font-size:19px;margin:0 0 16px}.formgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.field label{display:block;font-size:13px;font-weight:650;margin-bottom:7px}.field input,.field select,.toolbar input,.toolbar select{width:100%;padding:11px;border:1px solid #cbd7e6;border-radius:8px;background:#fff;color:#172b4d;font:inherit;min-width:0}
-.actions{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}.btn{border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:650;cursor:pointer}.primary{background:#1769d2;color:#fff}.secondary{background:#e8eef6;color:#334e70}.danger{background:#e83e49;color:#fff}.edit{background:#1672e8;color:white}.btn:disabled{opacity:.55;cursor:wait}
-.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px}.filters{display:flex;gap:9px;flex-wrap:wrap}.filters input{min-width:240px}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:850px;font-size:14px}th,td{padding:11px 12px;text-align:left;border-bottom:1px solid #e7edf5}th{background:#f0f5fb;color:#314d70;white-space:nowrap}tbody tr:hover{background:#f8fbff}.pill{display:inline-block;padding:4px 9px;border-radius:99px;font-size:12px;font-weight:700}.income{color:#12824b;background:#ddf7e8}.expense{color:#c52e39;background:#ffe5e7}.money{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.rowactions{display:flex;gap:6px}.rowactions .btn{padding:7px 10px;font-size:12px}.status{min-height:24px;margin-top:10px;font-size:14px;white-space:pre-wrap}.muted{color:#64748b}.empty{text-align:center;padding:28px;color:#64748b}.footer{text-align:center;color:#7b8da5;font-size:12px;padding:8px 0 22px}
-@media(max-width:950px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.wrap{padding:12px}.cards{grid-template-columns:1fr 1fr;gap:8px}.card{padding:13px}.panel{padding:14px}.formgrid{grid-template-columns:1fr}.filters,.filters input{width:100%}.filters input{min-width:0}}
+:root{
+  --nav:#0f2744; --nav-hover:#183760; --nav-line:#25446c; --nav-text:#b9c9de;
+  --paper:#f1f5f9; --surface:#fff; --line:#e0e7ef; --text:#14263d; --muted:#667a92;
+  --brand:#2b6fe0; --brand-soft:#e6eefc;
+  --in:#0f9d62; --in-soft:#dcf5e8; --ex:#e0424d; --ex-soft:#fde6e8;
+  --radius:14px;
+  font-family:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
+  color:var(--text); background:var(--paper);
+}
+*{box-sizing:border-box}
+body{margin:0;font-size:15px;line-height:1.5}
+[hidden]{display:none!important}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid #8ab4ff;outline-offset:2px}
+
+/* ---------- Layout ---------- */
+.app{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}
+.sidebar{background:var(--nav);color:#fff;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:22px 16px 18px;z-index:30}
+.brand{display:flex;gap:12px;align-items:center;padding:4px 8px 22px;border-bottom:1px solid var(--nav-line)}
+.logo{width:40px;height:40px;border-radius:11px;background:var(--brand);display:grid;place-items:center;flex:none}
+.logo svg{width:22px;height:22px}
+.brand b{display:block;font-size:15px;line-height:1.3;font-weight:600}
+.brand span{font-size:12px;color:var(--nav-text)}
+
+.nav{display:flex;flex-direction:column;gap:4px;margin-top:18px}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:0;border-radius:10px;background:none;color:var(--nav-text);cursor:pointer;text-align:left;font-weight:500;transition:background .15s,color .15s}
+.nav button svg{width:20px;height:20px;flex:none}
+.nav button:hover{background:var(--nav-hover);color:#fff}
+.nav button.active{background:#fff;color:var(--nav);font-weight:600}
+.badge{margin-left:auto;min-width:26px;padding:1px 8px;border-radius:99px;background:var(--nav-line);color:#fff;font-size:12px;text-align:center}
+.nav button.active .badge{background:var(--brand-soft);color:var(--brand)}
+
+.side-foot{margin-top:auto;display:grid;gap:12px}
+.datebox{padding:14px;border-radius:12px;background:var(--nav-hover);border:1px solid var(--nav-line)}
+.datebox small{display:block;color:var(--nav-text);font-size:12px}
+.datebox strong{display:block;font-size:18px;font-weight:600;margin:2px 0}
+.datebox span{font-size:12px;color:var(--nav-text);font-variant-numeric:tabular-nums}
+.reload{display:flex;gap:8px;align-items:center;justify-content:center;padding:11px;border-radius:10px;border:1px solid var(--nav-line);background:none;color:#fff;font-weight:600;cursor:pointer}
+.reload:hover{background:var(--nav-hover)}
+.reload:disabled{opacity:.55;cursor:wait}
+.stack{font-size:11px;color:#7f97b6;text-align:center;line-height:1.5}
+
+.main{min-width:0;padding:28px clamp(16px,3.2vw,44px) 28px}
+.mobilebar{display:none}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.pagehead h1{margin:0;font-size:clamp(22px,2.6vw,29px);font-weight:700;letter-spacing:-.01em}
+.pagehead p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border:1px solid var(--line);border-radius:99px;background:var(--surface);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip svg{width:16px;height:16px}
+
+/* ---------- Overview ---------- */
+.hero{background:var(--nav);color:#fff;border-radius:18px;padding:26px clamp(18px,3vw,32px);margin-bottom:16px}
+.hero small{color:var(--nav-text);font-size:14px}
+.hero .big{font-size:clamp(32px,5vw,52px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:6px 0 18px;font-variant-numeric:tabular-nums}
+.split{height:10px;border-radius:99px;background:var(--nav-line);overflow:hidden;display:flex}
+.split i{display:block;height:100%;transition:width .5s ease}
+.split .s-in{background:#34d399}.split .s-ex{background:#fb7185}
+.legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--nav-text)}
+.legend b{color:#fff;font-weight:600}
+
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.card,.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.card{padding:18px;display:flex;gap:14px;align-items:flex-start}
+.ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none}
+.ico svg{width:22px;height:22px}
+.ico.in{background:var(--in-soft);color:var(--in)}
+.ico.ex{background:var(--ex-soft);color:var(--ex)}
+.ico.cnt{background:#ece7fb;color:#7353c6}
+.card small{color:var(--muted);display:block}
+.amount{font-size:clamp(20px,2vw,26px);font-weight:700;line-height:1.25;margin:2px 0;font-variant-numeric:tabular-nums}
+.green{color:var(--in)}.red{color:var(--ex)}.blue{color:var(--brand)}.purple{color:#7353c6}
+
+.panel{padding:22px;margin-bottom:18px}
+.panel h2{font-size:18px;margin:0 0 16px;font-weight:600}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.panel-head h2{margin:0}
+.link{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer;padding:4px 2px}
+
+.recent{list-style:none;margin:0;padding:0}
+.recent li{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.recent li:last-child{border-bottom:0}
+.recent .ico{width:38px;height:38px;border-radius:10px}
+.recent .ico svg{width:18px;height:18px}
+.recent .what{min-width:0;flex:1}
+.recent .what b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent .what small{color:var(--muted)}
+.recent .amt{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- Form ---------- */
+.formgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px}
+.field{grid-column:span 2}
+.field.wide{grid-column:span 4}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:7px}
+.field input,.field select,.toolbar input,.toolbar select{width:100%;padding:11px 12px;border:1px solid #cbd7e6;border-radius:10px;background:#fff;color:var(--text);min-width:0}
+.field input:hover,.field select:hover,.toolbar input:hover,.toolbar select:hover{border-color:#9db4d2}
+.field input:focus,.field select:focus,.toolbar input:focus,.toolbar select:focus{border-color:var(--brand);outline:3px solid #cfe0ff;outline-offset:0}
+.hint{margin-top:5px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:600;cursor:pointer;transition:filter .15s}
+.btn:hover{filter:brightness(.95)}
+.primary{background:var(--brand);color:#fff}
+.secondary{background:#e8eef6;color:#334e70}
+.danger{background:var(--ex);color:#fff}
+.edit{background:var(--brand-soft);color:var(--brand)}
+.btn:disabled{opacity:.55;cursor:wait}
+.status{min-height:24px;margin-top:12px;font-size:14px;white-space:pre-wrap}
+
+/* ---------- Table ---------- */
+.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.filters input[type=search]{min-width:260px}
+.filters .mwrap{display:flex;flex-direction:column}
+.muted{color:var(--muted)}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:860px;font-size:14px}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line)}
+tbody tr:last-child td{border-bottom:0}
+th{background:#f6f9fc;color:#40597a;font-weight:600;white-space:nowrap}
+tbody tr:hover{background:#f8fbff}
+td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.income{color:#0b7d4b;background:var(--in-soft)}
+.expense{color:#c52e39;background:var(--ex-soft)}
+.money{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.rowactions{display:flex;gap:6px}
+.rowactions .btn{padding:6px 11px;font-size:12px}
+.empty{text-align:center;padding:34px;color:var(--muted)}
+.footer{text-align:center;color:#7b8da5;font-size:12px;padding:6px 0 4px}
+
+.scrim{display:none}
+
+/* ---------- Responsive ---------- */
+@media(max-width:1100px){.cards{grid-template-columns:1fr 1fr}.cards .card:last-child{grid-column:span 2}}
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;inset:0 auto 0 0;width:276px;transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto}
+  .sidebar.open{transform:none;box-shadow:0 0 40px #0008}
+  .scrim.show{display:block;position:fixed;inset:0;background:#0b1a2e88;z-index:20}
+  .mobilebar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;margin:-28px calc(-1 * clamp(16px,3.2vw,44px)) 18px;padding:12px clamp(16px,3.2vw,44px);background:var(--nav);color:#fff}
+  .mobilebar button{border:0;background:var(--nav-hover);color:#fff;width:40px;height:40px;border-radius:10px;cursor:pointer;display:grid;place-items:center}
+  .mobilebar svg{width:22px;height:22px}
+  .mobilebar b{font-weight:600}
+  .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .field,.field.wide{grid-column:span 1}
+  .field.wide{grid-column:span 2}
+}
+@media(max-width:700px){
+  .cards{grid-template-columns:1fr}.cards .card:last-child{grid-column:auto}
+  .panel{padding:16px}
+  .formgrid{grid-template-columns:1fr}.field.wide{grid-column:auto}
+  .filters,.filters input,.filters select,.filters .mwrap{width:100%}
+  .filters input[type=search]{min-width:0}
+  .tablewrap{border:0}
+  table{min-width:0}
+  table,tbody,tr,td{display:block}
+  thead{display:none}
+  tbody tr{border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-bottom:10px;background:#fff}
+  td{display:flex;justify-content:space-between;align-items:center;gap:16px;border:0;padding:6px 0;text-align:right}
+  td::before{content:attr(data-label);color:var(--muted);font-weight:500;text-align:left;flex:none}
+  td.empty{display:block;text-align:center}td.empty::before{content:none}
+  td.money{text-align:right}
+  .rowactions{justify-content:flex-end}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<header class="top">
-  <div><h1>ระบบจัดเก็บข้อมูลรายรับ-รายจ่าย</h1><div class="sub">Frontend: GitHub Pages &nbsp;|&nbsp; Backend: Google Apps Script &nbsp;|&nbsp; Database: Google Sheets</div></div>
-  <button class="btn secondary" id="reloadBtn">↻ โหลดข้อมูล</button>
-</header>
-<main class="wrap">
-  <section class="cards">
-    <div class="card"><small>รายรับทั้งหมด</small><div class="amount green" id="totalIncome">฿0.00</div><small id="incomeCount">0 รายการ</small></div>
-    <div class="card"><small>รายจ่ายทั้งหมด</small><div class="amount red" id="totalExpense">฿0.00</div><small id="expenseCount">0 รายการ</small></div>
-    <div class="card"><small>ยอดคงเหลือ</small><div class="amount blue" id="balance">฿0.00</div><small>รายรับ − รายจ่าย</small></div>
-    <div class="card"><small>จำนวนรายการ</small><div class="amount purple" id="totalCount">0</div><small>รายการทั้งหมด</small></div>
-  </section>
+<div class="app">
 
-  <section class="panel">
-    <h2 id="formTitle">＋ เพิ่มข้อมูลรายรับ-รายจ่าย</h2>
-    <form id="entryForm">
-      <input type="hidden" id="recordId">
-      <div class="formgrid">
-        <div class="field"><label for="date">วันที่</label><input id="date" type="date" required></div>
-        <div class="field"><label for="type">ประเภทรายการ</label><select id="type" required><option value="รายรับ">รายรับ</option><option value="รายจ่าย">รายจ่าย</option></select></div>
-        <div class="field"><label for="category">หมวดหมู่</label><select id="category" required><option>เงินเดือน</option><option>อาหาร</option><option>เดินทาง</option><option>บ้าน</option><option>สุขภาพ</option><option>การศึกษา</option><option>ช้อปปิ้ง</option><option>ขายของ</option><option>งานพิเศษ</option><option>บิล/ค่าสาธารณูปโภค</option><option>อื่นๆ</option></select></div>
-        <div class="field"><label for="amount">จำนวนเงิน (บาท)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="เช่น 1500" required></div>
-        <div class="field"><label for="detail">รายละเอียด</label><input id="detail" type="text" maxlength="250" placeholder="รายละเอียดรายการ" required></div>
-      </div>
-      <div class="actions"><button class="btn primary" id="saveBtn" type="submit">บันทึกข้อมูล</button><button class="btn secondary" type="button" id="cancelBtn">ล้างฟอร์ม</button></div>
-      <div class="status" id="formStatus" role="status"></div>
-    </form>
-  </section>
+  <!-- ================= Sidebar ================= -->
+  <aside class="sidebar" id="sidebar" aria-label="เมนูหลัก">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l12-4v4"/><circle cx="16.5" cy="14" r="1.2" fill="#fff"/></svg></div>
+      <div><b>รายรับ-รายจ่าย</b><span>ระบบจัดเก็บข้อมูล</span></div>
+    </div>
 
-  <section class="panel">
-    <h2>▤ รายการข้อมูล</h2>
-    <div class="toolbar">
-      <div class="filters">
-        <input id="search" type="search" placeholder="ค้นหาหมวดหมู่หรือรายละเอียด...">
-        <select id="typeFilter"><option value="">ทุกประเภท</option><option value="รายรับ">รายรับ</option><option value="รายจ่าย">รายจ่าย</option></select>
-        <input id="monthFilter" type="month" aria-label="กรองตามเดือน">
+    <nav class="nav" aria-label="เมนู">
+      <button type="button" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        ภาพรวม
+      </button>
+      <button type="button" data-view="form">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span id="navFormLabel">เพิ่มรายการ</span>
+      </button>
+      <button type="button" data-view="records">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>
+        รายการข้อมูล
+        <span class="badge" id="navCount">0</span>
+      </button>
+    </nav>
+
+    <div class="side-foot">
+      <div class="datebox">
+        <small id="todayWeekday">Today</small>
+        <strong id="todayDate">—</strong>
+        <span id="todayIso">—</span>
       </div>
-      <div class="muted" id="tableCount">0 รายการ</div>
+      <button class="reload" id="reloadBtn" type="button">↻ โหลดข้อมูล</button>
+      <div class="stack">GitHub Pages · Google Apps Script<br>Google Sheets</div>
     </div>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>ลำดับ</th><th>วันที่</th><th>ประเภท</th><th>หมวดหมู่</th><th>รายละเอียด</th><th class="money">จำนวนเงิน (บาท)</th><th>จัดการ</th></tr></thead>
-        <tbody id="recordsBody"><tr><td colspan="7" class="empty">กำลังโหลดข้อมูล...</td></tr></tbody>
-      </table>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <!-- ================= Main ================= -->
+  <main class="main">
+    <div class="mobilebar">
+      <button type="button" id="menuBtn" aria-label="เปิดเมนู" aria-controls="sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <b>ระบบจัดเก็บรายรับ-รายจ่าย</b>
     </div>
-    <div class="status" id="listStatus" role="status"></div>
-  </section>
-  <div class="footer">ข้อมูลถูกจัดเก็บใน Google Sheets ของคุณ · ตัวอย่างเริ่มต้นสำหรับใช้งานส่วนตัว</div>
-</main>
+
+    <header class="pagehead">
+      <div>
+        <h1 id="pageTitle">ภาพรวม</h1>
+        <p id="pageSub">สรุปรายรับ รายจ่าย และยอดคงเหลือทั้งหมด</p>
+      </div>
+      <div class="chip" title="Today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <span id="chipDate">—</span>
+      </div>
+    </header>
+
+    <!-- ===== View: Overview ===== -->
+    <section id="viewOverview">
+      <div class="hero">
+        <small>ยอดคงเหลือ</small>
+        <div class="big" id="balance">฿0.00</div>
+        <div class="split" aria-hidden="true"><i class="s-in" id="splitIn" style="width:0"></i><i class="s-ex" id="splitEx" style="width:0"></i></div>
+        <div class="legend"><span>รายรับ <b id="legendIn">0%</b></span><span>รายรับ − รายจ่าย</span><span>รายจ่าย <b id="legendEx">0%</b></span></div>
+      </div>
+
+      <div class="cards">
+        <div class="card"><div class="ico in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+          <div><small>รายรับทั้งหมด</small><div class="amount green" id="totalIncome">฿0.00</div><small id="incomeCount">0 รายการ</small></div></div>
+        <div class="card"><div class="ico ex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+          <div><small>รายจ่ายทั้งหมด</small><div class="amount red" id="totalExpense">฿0.00</div><small id="expenseCount">0 รายการ</small></div></div>
+        <div class="card"><div class="ico cnt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></div>
+          <div><small>จำนวนรายการ</small><div class="amount purple" id="totalCount">0</div><small>รายการทั้งหมด</small></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>รายการล่าสุด</h2><button class="link" type="button" id="seeAllBtn">ดูทั้งหมด</button></div>
+        <ul class="recent" id="recentList"><li class="muted">กำลังโหลดข้อมูล...</li></ul>
+      </div>
+    </section>
+
+    <!-- ===== View: Form ===== -->
+    <section id="viewForm" hidden>
+      <div class="panel">
+        <h2 id="formTitle">＋ เพิ่มข้อมูลรายรับ-รายจ่าย</h2>
+        <form id="entryForm">
+          <input type="hidden" id="recordId">
+          <div class="formgrid">
+            <div class="field"><label for="date">วันที่</label><input id="date" type="date" lang="en-GB" required><div class="hint" id="dateHint"></div></div>
+            <div class="field"><label for="type">ประเภทรายการ</label><select id="type" required><option value="รายรับ">รายรับ</option><option value="รายจ่าย">รายจ่าย</option></select></div>
+            <div class="field"><label for="category">หมวดหมู่</label><select id="category" required><option>เงินเดือน</option><option>อาหาร</option><option>เดินทาง</option><option>บ้าน</option><option>สุขภาพ</option><option>การศึกษา</option><option>ช้อปปิ้ง</option><option>ขายของ</option><option>งานพิเศษ</option><option>บิล/ค่าสาธารณูปโภค</option><option>อื่นๆ</option></select></div>
+            <div class="field"><label for="amount">จำนวนเงิน (บาท)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="เช่น 1500" required></div>
+            <div class="field wide"><label for="detail">รายละเอียด</label><input id="detail" type="text" maxlength="250" placeholder="รายละเอียดรายการ" required></div>
+          </div>
+          <div class="actions"><button class="btn primary" id="saveBtn" type="submit">บันทึกข้อมูล</button><button class="btn secondary" type="button" id="cancelBtn">ล้างฟอร์ม</button></div>
+          <div class="status" id="formStatus" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== View: Records ===== -->
+    <section id="viewRecords" hidden>
+      <div class="panel">
+        <div class="toolbar">
+          <div class="filters">
+            <input id="search" type="search" placeholder="ค้นหาหมวดหมู่หรือรายละเอียด..." aria-label="ค้นหา">
+            <select id="typeFilter" aria-label="กรองตามประเภท"><option value="">ทุกประเภท</option><option value="รายรับ">รายรับ</option><option value="รายจ่าย">รายจ่าย</option></select>
+            <div class="mwrap"><input id="monthFilter" type="month" lang="en-GB" aria-label="กรองตามเดือน"><div class="hint" id="monthHint"></div></div>
+          </div>
+          <div class="muted" id="tableCount">0 รายการ</div>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>ลำดับ</th><th>วันที่</th><th>ประเภท</th><th>หมวดหมู่</th><th>รายละเอียด</th><th class="money">จำนวนเงิน (บาท)</th><th>จัดการ</th></tr></thead>
+            <tbody id="recordsBody"><tr><td colspan="7" class="empty">กำลังโหลดข้อมูล...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="status" id="listStatus" role="status"></div>
+      </div>
+    </section>
+
+    <div class="footer">ข้อมูลถูกจัดเก็บใน Google Sheets ของคุณ · ตัวอย่างเริ่มต้นสำหรับใช้งานส่วนตัว</div>
+  </main>
+</div>
 
 <script>
 /*
@@ -80,11 +313,33 @@ let busy = false;
 
 const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat("th-TH",{style:"currency",currency:"THB"}).format(Number(n)||0);
+const pad = n => String(n).padStart(2,"0");
 const todayISO = () => {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 };
 
+/* ---------- International date helpers (Gregorian, DD Mon YYYY / ISO 8601) ---------- */
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const WDAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function formatDate(s) {
+  const m = safeText(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]} ${MON[+m[2]-1]} ${m[1]}` : safeText(s);
+}
+function formatMonth(s) {
+  const m = safeText(s).match(/^(\d{4})-(\d{2})/);
+  return m ? `${MON[+m[2]-1]} ${m[1]}` : "";
+}
+function showToday() {
+  const d = new Date();
+  const label = `${pad(d.getDate())} ${MON[d.getMonth()]} ${d.getFullYear()}`;
+  $("todayWeekday").textContent = WDAY[d.getDay()];
+  $("todayDate").textContent = label;
+  $("todayIso").textContent = todayISO();
+  $("chipDate").textContent = `${WDAY[d.getDay()]}, ${label}`;
+}
+
+/* ---------- API (unchanged) ---------- */
 function api(action, params={}) {
   return new Promise((resolve,reject) => {
     if (!API_URL || API_URL.includes("PASTE_YOUR")) {
@@ -113,22 +368,89 @@ function safeText(value) {
   return String(value ?? "");
 }
 
+/* ---------- Sidebar navigation ---------- */
+const VIEWS = {overview:"viewOverview", form:"viewForm", records:"viewRecords"};
+const TITLES = {
+  overview:["ภาพรวม","สรุปรายรับ รายจ่าย และยอดคงเหลือทั้งหมด"],
+  form:["เพิ่มรายการ","บันทึกรายรับหรือรายจ่ายใหม่"],
+  records:["รายการข้อมูล","ค้นหา กรอง แก้ไข และลบรายการ"]
+};
+function showView(name, opts={}) {
+  if (!VIEWS[name]) name = "overview";
+  Object.entries(VIEWS).forEach(([k,id]) => { $(id).hidden = k !== name; });
+  document.querySelectorAll(".nav button[data-view]").forEach(b => {
+    const on = b.dataset.view === name;
+    b.classList.toggle("active", on);
+    if (on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+  });
+  let [title, sub] = TITLES[name];
+  if (name === "form" && $("recordId").value) { title = "แก้ไขรายการ"; sub = "ปรับข้อมูลของรายการที่เลือก"; }
+  $("pageTitle").textContent = title;
+  $("pageSub").textContent = sub;
+  closeNav();
+  if (!opts.keepScroll) window.scrollTo({top:0});
+  if (location.hash !== "#" + name) history.replaceState(null,"","#" + name);
+}
+function openNav(){ $("sidebar").classList.add("open"); $("scrim").classList.add("show"); $("menuBtn").setAttribute("aria-expanded","true"); }
+function closeNav(){ $("sidebar").classList.remove("open"); $("scrim").classList.remove("show"); $("menuBtn").setAttribute("aria-expanded","false"); }
+
+/* ---------- Render ---------- */
+function typeIcon(type) {
+  return type === "รายรับ"
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
+}
+
+function renderRecent() {
+  const list = $("recentList");
+  list.replaceChildren();
+  const recent = [...records].sort((a,b)=>safeText(b.date).localeCompare(safeText(a.date))).slice(0,5);
+  if (!recent.length) {
+    const li = document.createElement("li"); li.className = "muted"; li.textContent = "ยังไม่มีรายการ";
+    list.appendChild(li); return;
+  }
+  recent.forEach(r => {
+    const isIn = r.type === "รายรับ";
+    const li = document.createElement("li");
+    const ico = document.createElement("div"); ico.className = "ico " + (isIn ? "in" : "ex"); ico.innerHTML = typeIcon(r.type);
+    const what = document.createElement("div"); what.className = "what";
+    const b = document.createElement("b"); b.textContent = safeText(r.detail);
+    const sm = document.createElement("small"); sm.textContent = `${safeText(r.category)} · ${formatDate(r.date)}`;
+    what.append(b, sm);
+    const amt = document.createElement("div"); amt.className = "amt " + (isIn ? "green" : "red");
+    amt.textContent = (isIn ? "+" : "−") + money(r.amount);
+    li.append(ico, what, amt); list.appendChild(li);
+  });
+}
+
 function render() {
   const income = records.filter(r=>r.type==="รายรับ");
   const expense = records.filter(r=>r.type==="รายจ่าย");
   const sum = list => list.reduce((s,r)=>s+Number(r.amount||0),0);
-  $("totalIncome").textContent = money(sum(income));
-  $("totalExpense").textContent = money(sum(expense));
-  $("balance").textContent = money(sum(income)-sum(expense));
+  const inSum = sum(income), exSum = sum(expense);
+  $("totalIncome").textContent = money(inSum);
+  $("totalExpense").textContent = money(exSum);
+  $("balance").textContent = money(inSum-exSum);
   $("incomeCount").textContent = `${income.length} รายการ`;
   $("expenseCount").textContent = `${expense.length} รายการ`;
   $("totalCount").textContent = records.length;
+  $("navCount").textContent = records.length;
+
+  const total = inSum + exSum;
+  const pIn = total ? Math.round(inSum/total*100) : 0;
+  const pEx = total ? 100 - pIn : 0;
+  $("splitIn").style.width = pIn + "%";
+  $("splitEx").style.width = pEx + "%";
+  $("legendIn").textContent = pIn + "%";
+  $("legendEx").textContent = pEx + "%";
+  renderRecent();
 
   const search = $("search").value.trim().toLocaleLowerCase("th");
   const type = $("typeFilter").value;
   const month = $("monthFilter").value;
+  $("monthHint").textContent = formatMonth(month);
   const filtered = records.filter(r => {
-    const matchesSearch = !search || [r.category,r.detail,r.date,r.type].some(v=>safeText(v).toLocaleLowerCase("th").includes(search));
+    const matchesSearch = !search || [r.category,r.detail,r.date,formatDate(r.date),r.type].some(v=>safeText(v).toLocaleLowerCase("th").includes(search));
     const matchesType = !type || r.type===type;
     const matchesMonth = !month || safeText(r.date).startsWith(month);
     return matchesSearch && matchesType && matchesMonth;
@@ -141,26 +463,26 @@ function render() {
     const tr=document.createElement("tr"),td=document.createElement("td");
     td.colSpan=7;td.className="empty";td.textContent="ไม่พบข้อมูล";tr.appendChild(td);body.appendChild(tr);return;
   }
+  const labels = ["ลำดับ","วันที่","ประเภท","หมวดหมู่","รายละเอียด"];
   filtered.forEach((r,i)=>{
     const tr=document.createElement("tr");
     const values=[i+1,formatDate(r.date),r.type,r.category,r.detail];
     values.forEach((value,index)=>{
       const td=document.createElement("td");
       td.textContent=safeText(value);
+      td.dataset.label=labels[index];
+      if(index===1){td.className="date";td.title=safeText(r.date).slice(0,10);}
       if(index===2){const span=document.createElement("span");span.className="pill "+(r.type==="รายรับ"?"income":"expense");span.textContent=r.type;td.replaceChildren(span);}
       tr.appendChild(td);
     });
-    const amount=document.createElement("td");amount.className="money";amount.textContent=money(r.amount);tr.appendChild(amount);
-    const actions=document.createElement("td"),group=document.createElement("div");group.className="rowactions";
+    const amount=document.createElement("td");amount.className="money";amount.dataset.label="จำนวนเงิน (บาท)";amount.textContent=money(r.amount);tr.appendChild(amount);
+    const actions=document.createElement("td"),group=document.createElement("div");group.className="rowactions";actions.dataset.label="จัดการ";
     const edit=document.createElement("button");edit.className="btn edit";edit.textContent="✎ แก้ไข";edit.onclick=()=>startEdit(r.id);
     const del=document.createElement("button");del.className="btn danger";del.textContent="ลบ";del.onclick=()=>deleteRecord(r.id);
     group.append(edit,del);actions.appendChild(group);tr.appendChild(actions);body.appendChild(tr);
   });
 }
-function formatDate(s) {
-  const m=safeText(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : safeText(s);
-}
+
 async function loadRecords() {
   $("listStatus").textContent="กำลังโหลดข้อมูล...";
   try {
@@ -170,21 +492,31 @@ async function loadRecords() {
     render();$("listStatus").textContent="";
   } catch(e) {$("listStatus").textContent=e.message;}
 }
+
+function updateDateHint() { $("dateHint").textContent = formatDate($("date").value); }
+
 function clearForm() {
   $("entryForm").reset();$("recordId").value="";$("date").value=todayISO();
   $("formTitle").textContent="＋ เพิ่มข้อมูลรายรับ-รายจ่าย";
+  $("navFormLabel").textContent="เพิ่มรายการ";
   $("saveBtn").textContent="บันทึกข้อมูล";$("formStatus").textContent="";
+  updateDateHint();
+  if(!$("viewForm").hidden) showView("form",{keepScroll:true});
 }
+
 function startEdit(id) {
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  $("recordId").value=r.id;$("date").value=r.date;$("type").value=r.type;
+  $("recordId").value=r.id;$("date").value=safeText(r.date).slice(0,10);$("type").value=r.type;
   $("category").value=r.category;
   if(!$("category").value){const o=document.createElement("option");o.value=r.category;o.textContent=r.category;$("category").appendChild(o);$("category").value=r.category;}
   $("amount").value=r.amount;$("detail").value=r.detail;
   $("formTitle").textContent="✎ แก้ไขข้อมูลรายรับ-รายจ่าย";
+  $("navFormLabel").textContent="แก้ไขรายการ";
   $("saveBtn").textContent="บันทึกการแก้ไข";$("formStatus").textContent="กำลังแก้ไขรายการที่เลือก";
-  window.scrollTo({top:0,behavior:"smooth"});
+  updateDateHint();
+  showView("form");
 }
+
 async function deleteRecord(id) {
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
   if(!confirm(`ยืนยันลบรายการ "${r.detail}" จำนวน ${money(r.amount)} หรือไม่?`))return;
@@ -196,6 +528,7 @@ async function deleteRecord(id) {
   } catch(e){$("listStatus").textContent=e.message;}
   finally{setBusy(false);}
 }
+
 $("entryForm").addEventListener("submit",async e=>{
   e.preventDefault();if(busy)return;
   const id=$("recordId").value;
@@ -216,10 +549,22 @@ $("entryForm").addEventListener("submit",async e=>{
   }catch(err){$("formStatus").textContent=err.message;}
   finally{setBusy(false);}
 });
+
 $("cancelBtn").addEventListener("click",clearForm);
 $("reloadBtn").addEventListener("click",loadRecords);
 ["search","typeFilter","monthFilter"].forEach(id=>$(id).addEventListener("input",render));
+$("date").addEventListener("input",updateDateHint);
+document.querySelectorAll(".nav button[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+$("seeAllBtn").addEventListener("click",()=>showView("records"));
+$("menuBtn").addEventListener("click",openNav);
+$("scrim").addEventListener("click",closeNav);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeNav(); });
+window.addEventListener("hashchange",()=>showView(location.hash.slice(1),{keepScroll:true}));
+
+showToday();
 $("date").value=todayISO();
+updateDateHint();
+showView(location.hash.slice(1),{keepScroll:true});
 loadRecords();
 </script>
 </body>
