@@ -339,6 +339,31 @@ function showToday() {
   $("chipDate").textContent = `${WDAY[d.getDay()]}, ${label}`;
 }
 
+/* ---------- Normalize any date the backend returns to YYYY-MM-DD ---------- */
+function normDate(v) {
+  const s = safeText(v).trim();
+  if (!s) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // JS Date.toString() style, e.g. "Thu Oct 01 2026 00:00:00 GMT+0700 (...)": read the written date as-is
+  let m = s.match(/^[A-Za-z]{3},?\s+([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})/);
+  if (m) { const mi = MON.findIndex(x => x.toLowerCase() === m[1].toLowerCase()); if (mi >= 0) return `${m[3]}-${pad(mi+1)}-${pad(m[2])}`; }
+  // ISO with time / timezone, e.g. "2026-09-30T17:00:00.000Z": convert to local calendar date
+  const d = new Date(s);
+  if (!isNaN(d)) return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const iso = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  return iso ? iso[1] : s;
+}
+
+/* ---------- Restore text that Google Sheets auto-converted into a date (e.g. "10-2026") ---------- */
+function fixText(v) {
+  const s = safeText(v);
+  const m = s.match(/^[A-Za-z]{3},?\s+([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})\s+00:00:00\s+GMT/);
+  if (!m) return v;
+  const mi = MON.findIndex(x => x.toLowerCase() === m[1].toLowerCase());
+  if (mi < 0) return v;
+  return +m[2] === 1 ? `${pad(mi+1)}-${m[3]}` : `${pad(m[2])}-${pad(mi+1)}-${m[3]}`;
+}
+
 /* ---------- API (unchanged) ---------- */
 function api(action, params={}) {
   return new Promise((resolve,reject) => {
@@ -488,7 +513,7 @@ async function loadRecords() {
   try {
     const result=await api("list");
     if(!result.success) throw new Error(result.message||"โหลดข้อมูลไม่สำเร็จ");
-    records=Array.isArray(result.data)?result.data:[];
+    records=(Array.isArray(result.data)?result.data:[]).map(r=>({...r,date:normDate(r.date),detail:fixText(r.detail),category:fixText(r.category)}));
     render();$("listStatus").textContent="";
   } catch(e) {$("listStatus").textContent=e.message;}
 }
